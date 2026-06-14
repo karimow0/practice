@@ -1,0 +1,42 @@
+# Triple Factor Authentication for Social Media
+
+## Overview
+
+A Flask-based authentication system implementing:
+
+- Password Authentication (bcrypt)
+- OTP Authentication (Google Authenticator + TOTP)
+- Facial Recognition (DeepFace)
+- JWT Session Security
+
+## Features
+
+- User Registration
+- Password Hashing
+- QR Code OTP Setup
+- Face Verification
+- JWT Authentication
+
+## Technologies
+
+- Python
+- Flask
+- MySQL
+- DeepFace
+- bcrypt
+- PyOTP
+- JWT
+
+## Security Layers
+
+Factor 1: Password
+
+Factor 2: OTP
+
+Factor 3: Biometrics
+
+Session Protection: JWT
+
+## Installation
+
+...

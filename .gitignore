@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+
+stored_faces/
+temp_*.png
+
+venv/
+.venv/
+
+.DS_Store
