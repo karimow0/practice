@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Factor 1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="box">
+        <h2>Factor 3 (Biometrics)</h2>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form id="faceForm" action="/factor3" method="POST">
+            <video id="webcam" autoplay playsinline></video>
+            <input type="hidden" name="face_photo" id="face_photo">
+            <button type="button" onclick="submitForm()">Scan Face & Enter</button>
+        </form>
+        <canvas id="canvas" style="display:none;" width="320" height="240"></canvas>
+        <script>
+            const video = document.getElementById('webcam');
+            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { video.srcObject = stream; });
+            function submitForm() {
+                const canvas = document.getElementById('canvas');
+                canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+                document.getElementById('face_photo').value = canvas.toDataURL('image/jpeg');
+                document.getElementById('faceForm').submit();
+            }
+        </script>
+    </div>
+</body>
+</html>

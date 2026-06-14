@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Factor 1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="box">
+        <h2>Register Account</h2>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form id="regForm" action="/register" method="POST">
+            <input type="text" name="username" placeholder="Choose Username" required>
+            <input type="password" name="password" placeholder="Choose Password" required>
+            <p style="font-size: 14px;">Master Face Scan:</p>
+            <video id="webcam" autoplay playsinline></video>
+            <input type="hidden" name="face_photo" id="face_photo">
+            <button type="button" onclick="submitForm()">Capture & Register</button>
+        </form>
+        <a href="/">Back to Login</a>
+        <canvas id="canvas" style="display:none;" width="320" height="240"></canvas>
+        <script>
+            const video = document.getElementById('webcam');
+            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { video.srcObject = stream; });
+            function submitForm() {
+                const canvas = document.getElementById('canvas');
+                canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+                document.getElementById('face_photo').value = canvas.toDataURL('image/jpeg');
+                document.getElementById('regForm').submit();
+            }
+        </script>
+    </div>
+
+</body>
+</html>

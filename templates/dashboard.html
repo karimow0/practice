@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Factor 1</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="box" style="width: 500px; background: #0f3460;">
+        <h1 style="color: #4caf50;">Access Granted</h1>
+        <h2>Welcome to the Social Network, @{{ username }}!</h2>
+        <p>You have successfully passed 3 levels of authentication.</p>
+        <a href="/logout"><button type="button" style="background:#333;">Secure Logout</button></a>
+    </div>
+</body>
+</html>

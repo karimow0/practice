@@ -10,13 +10,12 @@ import os
 import jwt 
 import datetime
 from dotenv import load_dotenv
+
 load_dotenv()
 
-os.getenv("SECRET_KEY")
-os.getenv("DB_PASSWORD")
-os.getenv("JWT_SECRET")
-
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+JWT_SECRET = os.getenv("JWT_SECRET_KEY")
 
 
 UPLOAD_FOLDER = 'stored_faces'
@@ -24,132 +23,13 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 def get_db_connection():
-    return mysql.connector.connect(**db_config)
+    return mysql.connector.connect(**{
+        'host': os.getenv("DB_HOST"),
+        'user': os.getenv("DB_USER"),
+        'password': os.getenv("DB_PASSWORD"),
+        'database': os.getenv("DB_NAME")
+    })
 
-# =====================================================================
-# HTML TEMPLATES (Built directly in Python so you don't need folders)
-# =====================================================================
-
-BASE_STYLE = """
-<style>
-    body { font-family: 'Arial', sans-serif; background: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .box { background: #16213e; padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 350px; text-align: center; }
-    input { width: 90%; padding: 12px; margin: 10px 0; border-radius: 5px; border: none; background: #0f3460; color: white; font-size: 16px; }
-    button { width: 100%; padding: 12px; margin-top: 15px; border-radius: 5px; border: none; background: #e94560; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
-    button:hover { background: #ff2a4b; }
-    a { color: #e94560; text-decoration: none; font-size: 14px; display: block; margin-top: 15px; }
-    video { width: 100%; border-radius: 5px; border: 2px solid #e94560; transform: scaleX(-1); margin-bottom: 15px; }
-    .error { color: #ff4d4d; margin-bottom: 10px; font-size: 14px; }
-</style>
-"""
-
-# 1. LOGIN PAGE (Factor 1)
-HTML_LOGIN = BASE_STYLE + """
-<div class="box">
-    <h2>Client Login</h2>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <form action="/" method="POST">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Verify Password (Factor 1)</button>
-    </form>
-    <a href="/register">Create new account</a>
-</div>
-"""
-
-# 2. REGISTER PAGE
-HTML_REGISTER = BASE_STYLE + """
-<div class="box">
-    <h2>Register Account</h2>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <form id="regForm" action="/register" method="POST">
-        <input type="text" name="username" placeholder="Choose Username" required>
-        <input type="password" name="password" placeholder="Choose Password" required>
-        <p style="font-size: 14px;">Master Face Scan:</p>
-        <video id="webcam" autoplay playsinline></video>
-        <input type="hidden" name="face_photo" id="face_photo">
-        <button type="button" onclick="submitForm()">Capture & Register</button>
-    </form>
-    <a href="/">Back to Login</a>
-    <canvas id="canvas" style="display:none;" width="320" height="240"></canvas>
-    <script>
-        const video = document.getElementById('webcam');
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { video.srcObject = stream; });
-        function submitForm() {
-            const canvas = document.getElementById('canvas');
-            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
-            document.getElementById('face_photo').value = canvas.toDataURL('image/jpeg');
-            document.getElementById('regForm').submit();
-        }
-    </script>
-</div>
-"""
-
-# 3. 2FA SETUP PAGE (Shows after successful registration)
-HTML_SETUP_2FA = BASE_STYLE + """
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<div class="box">
-    <h2>Registration Success!</h2>
-    <p style="font-size: 14px;">Scan with Google Authenticator:</p>
-    <div id="qrcode" style="display:flex; justify-content:center; margin: 15px 0; padding:10px; background:white;"></div>
-    <p style="font-size: 12px;">Or use secret key: <br><strong style="color:#e94560; font-size:16px;">{{ secret }}</strong></p>
-    <a href="/"><button type="button">Go to Login</button></a>
-    <script>
-        new QRCode(document.getElementById("qrcode"), { text: "{{ uri }}", width: 130, height: 130 });
-    </script>
-</div>
-"""
-
-# 4. FACTOR 2 PAGE (OTP)
-HTML_FACTOR2 = BASE_STYLE + """
-<div class="box">
-    <h2>Factor 2</h2>
-    <p>Enter your 6-digit App Code:</p>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <form action="/factor2" method="POST">
-        <input type="text" name="otp_code" placeholder="000000" maxlength="6" required>
-        <button type="submit">Verify Token</button>
-    </form>
-</div>
-"""
-
-# 5. FACTOR 3 PAGE (Face Scan)
-HTML_FACTOR3 = BASE_STYLE + """
-<div class="box">
-    <h2>Factor 3 (Biometrics)</h2>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <form id="faceForm" action="/factor3" method="POST">
-        <video id="webcam" autoplay playsinline></video>
-        <input type="hidden" name="face_photo" id="face_photo">
-        <button type="button" onclick="submitForm()">Scan Face & Enter</button>
-    </form>
-    <canvas id="canvas" style="display:none;" width="320" height="240"></canvas>
-    <script>
-        const video = document.getElementById('webcam');
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => { video.srcObject = stream; });
-        function submitForm() {
-            const canvas = document.getElementById('canvas');
-            canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
-            document.getElementById('face_photo').value = canvas.toDataURL('image/jpeg');
-            document.getElementById('faceForm').submit();
-        }
-    </script>
-</div>
-"""
-
-# 6. DASHBOARD (Success)
-HTML_DASHBOARD = BASE_STYLE + """
-<div class="box" style="width: 500px; background: #0f3460;">
-    <h1 style="color: #4caf50;">Access Granted</h1>
-    <h2>Welcome to the Social Network, @{{ username }}!</h2>
-    <p>You have successfully passed 3 levels of authentication.</p>
-    <a href="/logout"><button type="button" style="background:#333;">Secure Logout</button></a>
-</div>
-"""
-
-# =====================================================================
-# FLASK ROUTING LOGIC
-# =====================================================================
 
 @app.route('/', methods=['GET', 'POST'])
 def login_factor1():

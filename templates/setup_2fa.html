@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang=""en">
+<head>
+    <meta charset=""UTF-8">
+    <title>Login -Factor 1</title>
+    <link rel=""stylesheet" href="{{ url_for('tatic', filename='ftyle.css')}}">
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <div class="box">
+        <h2>Registration Success!</h2>
+        <p style="font-size: 14px;">Scan with Google Authenticator:</p>
+        <div id="qrcode" style="display:flex; justify-content:center; margin: 15px 0; padding:10px; background:white;"></div>
+        <p style="font-size: 12px;">Or use secret key: <br><strong style="color:#e94560; font-size:16px;">{{ secret }}</strong></p>
+        <a href="/"><button type="button">Go to Login</button></a>
+        <script>
+            new QRCode(document.getElementById("qrcode"), { text: "{{ uri }}", width: 130, height: 130 });
+        </script>
+    </div>
+</body>
+</html>
